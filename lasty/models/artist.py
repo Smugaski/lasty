@@ -8,6 +8,7 @@ to their endpoint context.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from urllib.parse import quote_plus
 
 from lasty._types import JSONDict
 from lasty.models.common import Image
@@ -25,6 +26,15 @@ __all__ = [
     "ArtistInfo",
     "ArtistCorrection",
 ]
+
+
+def _parse_artist_url(data: JSONDict, name: str) -> str:
+    url = data.get("url")
+    if url:
+        return str(url)
+    if name:
+        return f"https://www.last.fm/music/{quote_plus(name)}"
+    return ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,10 +58,11 @@ class BaseArtist:
         Args:
             data: A dict with ``name``, ``mbid``, and ``url`` keys.
         """
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
         )
 
 
@@ -78,10 +89,11 @@ class ArtistSummary(BaseArtist):
         Args:
             data: The raw artist dict from the API.
         """
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
             images=Image.list_from_data(data.get("image")),
             playcount=int(data.get("playcount", 0)),
             listeners=int(data.get("listeners", 0)),
@@ -108,10 +120,11 @@ class SimilarArtist(BaseArtist):
         Args:
             data: The raw similar artist dict from the API.
         """
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
             images=Image.list_from_data(data.get("image")),
             match=float(data.get("match", 0.0)),
         )
@@ -141,10 +154,11 @@ class TopArtist(BaseArtist):
             data: The raw artist dict from the API.
         """
         attr = data.get("@attr", {})
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
             playcount=int(data.get("playcount", 0)),
             rank=int(attr.get("rank", 0)) if attr else 0,
             images=Image.list_from_data(data.get("image")),
@@ -172,10 +186,11 @@ class WeeklyChartArtist(BaseArtist):
             data: The raw artist dict from the API.
         """
         attr = data.get("@attr", {})
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
             playcount=int(data.get("playcount", 0)),
             rank=int(attr.get("rank", 0)) if attr else 0,
         )
@@ -204,10 +219,11 @@ class LibraryArtist(BaseArtist):
         Args:
             data: The raw artist dict from the API.
         """
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
             playcount=int(data.get("playcount", 0)),
             tagcount=int(data.get("tagcount", 0)),
             images=Image.list_from_data(data.get("image")),
@@ -326,10 +342,11 @@ class ArtistInfo(BaseArtist):
         tags_data = data.get("tags", {})
         tags_list = tags_data.get("tag", []) if isinstance(tags_data, dict) else []
 
+        name = data.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_artist_url(data, name),
             images=Image.list_from_data(data.get("image")),
             streamable=data.get("streamable", "0"),
             ontour=data.get("ontour", "0"),

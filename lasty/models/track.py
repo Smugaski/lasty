@@ -1,12 +1,7 @@
-"""Track models with inheritance hierarchy.
-
-``BaseTrack`` provides shared fields; richer variants like ``TrackInfo``,
-``RecentTrack``, and ``TopTrack`` add endpoint-specific data.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from urllib.parse import quote_plus
 
 from lasty._types import JSONDict
 from lasty.models.common import Image, Wiki, Streamable, DateInfo
@@ -26,6 +21,22 @@ __all__ = [
     "ScrobbleResult",
     "NowPlayingResult",
 ]
+
+
+def _parse_track_url(
+    data: JSONDict, artist_name: str, track_name: str, album_name: str = ""
+) -> str:
+    url = data.get("url")
+    if url:
+        return str(url)
+    if artist_name and track_name:
+        artist_quoted = quote_plus(artist_name)
+        track_quoted = quote_plus(track_name)
+        if album_name:
+            album_quoted = quote_plus(album_name)
+            return f"https://www.last.fm/music/{artist_quoted}/{album_quoted}/_/{track_quoted}"
+        return f"https://www.last.fm/music/{artist_quoted}/_/{track_quoted}"
+    return ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +65,7 @@ class BaseTrack:
             data: A dict with ``name``, ``mbid``, ``url``, and ``artist`` keys.
                   The ``artist`` field may be a string or a dict.
         """
+        name = data.get("name", "")
         artist_raw = data.get("artist")
         artist_obj: BaseArtist | None = None
         artist_name: str = ""
@@ -67,9 +79,9 @@ class BaseTrack:
             artist_name = artist_raw
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name),
             artist=artist_obj,
             artist_name=artist_name,
         )
@@ -80,6 +92,7 @@ class TopTrack(BaseTrack):
     """A track in a user's or artist's top tracks list.
 
     Attributes:
+        artist: The artist as a ``BaseArtist``.
         playcount: The play count in the chart context.
         rank: The rank in the chart.
         duration: Track duration in seconds.
@@ -87,6 +100,7 @@ class TopTrack(BaseTrack):
         streamable: Streamability information.
     """
 
+    artist: BaseArtist
     playcount: int = 0
     rank: int = 0
     duration: int = 0
@@ -101,19 +115,23 @@ class TopTrack(BaseTrack):
             data: The raw track dict from the API.
         """
         attr = data.get("@attr", {})
+        name = data.get("name", "")
         artist_raw = data.get("artist")
-        artist_obj: BaseArtist | None = None
-        artist_name: str = ""
+        artist_obj: BaseArtist
         if isinstance(artist_raw, dict):
             artist_obj = BaseArtist.from_data(artist_raw)
             artist_name = artist_raw.get("name", "")
         elif isinstance(artist_raw, str):
             artist_name = artist_raw
+            artist_obj = BaseArtist.from_data({"name": artist_name})
+        else:
+            artist_name = ""
+            artist_obj = BaseArtist(name="", mbid="", url="")
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name),
             artist=artist_obj,
             artist_name=artist_name,
             playcount=int(data.get("playcount", 0)),
@@ -129,11 +147,13 @@ class LovedTrack(BaseTrack):
     """A track from a user's loved tracks list.
 
     Attributes:
+        artist: The artist as a ``BaseArtist``.
         date: When the track was loved.
         images: Available image variants.
         streamable: Streamability information.
     """
 
+    artist: BaseArtist
     date: DateInfo | None = None
     images: list[Image] = field(default_factory=list)
     streamable: Streamable | None = None
@@ -145,19 +165,23 @@ class LovedTrack(BaseTrack):
         Args:
             data: The raw track dict from the API.
         """
+        name = data.get("name", "")
         artist_raw = data.get("artist")
-        artist_obj: BaseArtist | None = None
-        artist_name: str = ""
+        artist_obj: BaseArtist
         if isinstance(artist_raw, dict):
             artist_obj = BaseArtist.from_data(artist_raw)
             artist_name = artist_raw.get("name", "")
         elif isinstance(artist_raw, str):
             artist_name = artist_raw
+            artist_obj = BaseArtist.from_data({"name": artist_name})
+        else:
+            artist_name = ""
+            artist_obj = BaseArtist(name="", mbid="", url="")
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name),
             artist=artist_obj,
             artist_name=artist_name,
             date=DateInfo.from_data(data.get("date")),
@@ -197,6 +221,7 @@ class RecentTrack(BaseTrack):
         Args:
             data: The raw track dict from the API.
         """
+        name = data.get("name", "")
         attr = data.get("@attr", {})
         now_playing = attr.get("nowplaying", "false") == "true" if attr else False
 
@@ -220,11 +245,13 @@ class RecentTrack(BaseTrack):
         if isinstance(album_raw, dict):
             album_name = album_raw.get("#text") or album_raw.get("name", "")
             album_mbid = album_raw.get("mbid", "")
+        elif isinstance(album_raw, str):
+            album_name = album_raw
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name, album_name),
             artist=artist_obj,
             artist_name=artist_name,
             album_name=album_name,
@@ -259,6 +286,7 @@ class WeeklyChartTrack(BaseTrack):
             data: The raw track dict from the API.
         """
         attr = data.get("@attr", {})
+        name = data.get("name", "")
         artist_raw = data.get("artist")
         artist_name: str = ""
         if isinstance(artist_raw, dict):
@@ -267,9 +295,9 @@ class WeeklyChartTrack(BaseTrack):
             artist_name = artist_raw
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name),
             artist_name=artist_name,
             playcount=int(data.get("playcount", 0)),
             rank=int(attr.get("rank", 0)) if attr else 0,
@@ -282,12 +310,14 @@ class SimilarTrack(BaseTrack):
     """A similar track from ``track.getSimilar``.
 
     Attributes:
+        artist: The artist as a ``BaseArtist``.
         match: Similarity score (0.0–1.0).
         duration: Track duration in seconds.
         playcount: Total play count.
         images: Available image variants.
     """
 
+    artist: BaseArtist
     match: float = 0.0
     duration: int = 0
     playcount: int = 0
@@ -300,19 +330,23 @@ class SimilarTrack(BaseTrack):
         Args:
             data: The raw track dict from the API.
         """
+        name = data.get("name", "")
         artist_raw = data.get("artist")
-        artist_obj: BaseArtist | None = None
-        artist_name: str = ""
+        artist_obj: BaseArtist
         if isinstance(artist_raw, dict):
             artist_obj = BaseArtist.from_data(artist_raw)
             artist_name = artist_raw.get("name", "")
         elif isinstance(artist_raw, str):
             artist_name = artist_raw
+            artist_obj = BaseArtist.from_data({"name": artist_name})
+        else:
+            artist_name = ""
+            artist_obj = BaseArtist(name="", mbid="", url="")
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name),
             artist=artist_obj,
             artist_name=artist_name,
             match=float(data.get("match", 0.0)),
@@ -327,6 +361,7 @@ class TrackInfo(BaseTrack):
     """Full track information from ``track.getInfo``.
 
     Attributes:
+        artist: The artist as a ``BaseArtist``.
         duration: Track duration in milliseconds.
         listeners: Total unique listeners.
         playcount: Total play count.
@@ -338,6 +373,7 @@ class TrackInfo(BaseTrack):
         userloved: Whether the requesting user has loved this track.
     """
 
+    artist: BaseArtist
     duration: int = 0
     listeners: int = 0
     playcount: int = 0
@@ -355,14 +391,23 @@ class TrackInfo(BaseTrack):
         Args:
             data: The ``track`` object from the API response.
         """
+        name = data.get("name", "")
         artist_raw = data.get("artist")
-        artist_obj: BaseArtist | None = None
-        artist_name: str = ""
+        artist_obj: BaseArtist
         if isinstance(artist_raw, dict):
             artist_obj = BaseArtist.from_data(artist_raw)
             artist_name = artist_raw.get("name", "")
         elif isinstance(artist_raw, str):
             artist_name = artist_raw
+            artist_obj = BaseArtist.from_data({"name": artist_name})
+        else:
+            artist_name = ""
+            artist_obj = BaseArtist(name="", mbid="", url="")
+
+        album_data = data.get("album")
+        album_name = ""
+        if isinstance(album_data, dict):
+            album_name = album_data.get("title", "") or album_data.get("name", "")
 
         toptags_data = data.get("toptags", {})
         toptags_list = (
@@ -372,16 +417,16 @@ class TrackInfo(BaseTrack):
         upc = data.get("userplaycount")
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_track_url(data, artist_name, name, album_name),
             artist=artist_obj,
             artist_name=artist_name,
             duration=int(data.get("duration", 0)),
             listeners=int(data.get("listeners", 0)),
             playcount=int(data.get("playcount", 0)),
             streamable=Streamable.from_data(data.get("streamable")),
-            album=TrackAlbum.from_data(data.get("album")),
+            album=TrackAlbum.from_data(album_data if isinstance(album_data, dict) else None),
             toptags=[Tag.from_data(t) for t in toptags_list],
             wiki=Wiki.from_data(data.get("wiki")),
             userplaycount=int(upc) if upc is not None else None,

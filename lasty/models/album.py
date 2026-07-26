@@ -7,6 +7,7 @@ data like tracks, tags, or playcount.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from urllib.parse import quote_plus
 
 from lasty._types import JSONDict
 from lasty.models.common import Image, Wiki, Streamable
@@ -22,6 +23,15 @@ __all__ = [
     "AlbumInfo",
     "TrackAlbum",
 ]
+
+
+def _parse_album_url(data: JSONDict, artist: str, album_name: str) -> str:
+    url = data.get("url")
+    if url:
+        return str(url)
+    if artist and album_name:
+        return f"https://www.last.fm/music/{quote_plus(artist)}/{quote_plus(album_name)}"
+    return ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,13 +58,14 @@ class BaseAlbum:
             data: A dict with ``name``, ``mbid``, ``url``, and ``artist`` keys.
                   The ``artist`` field may be a string or a dict with a ``name`` key.
         """
+        name = data.get("name") or data.get("title", "")
         artist = data.get("artist", "")
         if isinstance(artist, dict):
             artist = artist.get("name", "")
         return cls(
-            name=data.get("name") or data.get("title", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_album_url(data, artist, name),
             artist=artist,
         )
 
@@ -90,11 +101,13 @@ class TrackAlbum:
             return None
         attr = data.get("@attr", {})
         pos = attr.get("position") if attr else None
+        artist = data.get("artist", "")
+        title = data.get("title", "") or data.get("name", "")
         return cls(
-            artist=data.get("artist", ""),
-            title=data.get("title", ""),
+            artist=artist,
+            title=title,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_album_url(data, artist, title),
             images=Image.list_from_data(data.get("image")),
             position=int(pos) if pos is not None else None,
         )
@@ -119,13 +132,14 @@ class AlbumSearchResult(BaseAlbum):
         Args:
             data: The raw album dict from the search API.
         """
+        name = data.get("name", "")
         artist = data.get("artist", "")
         if isinstance(artist, dict):
             artist = artist.get("name", "")
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_album_url(data, artist, name),
             artist=artist,
             images=Image.list_from_data(data.get("image")),
             streamable=data.get("streamable", "0"),
@@ -155,6 +169,7 @@ class TopAlbum(BaseAlbum):
         Args:
             data: The raw album dict from the API.
         """
+        name = data.get("name", "")
         attr = data.get("@attr", {})
         artist_raw = data.get("artist", "")
         artist_name: str
@@ -166,9 +181,9 @@ class TopAlbum(BaseAlbum):
             artist_name = str(artist_raw)
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
+            url=_parse_album_url(data, artist_name, name),
             artist=artist_name,
             playcount=int(data.get("playcount", 0)),
             rank=int(attr.get("rank", 0)) if attr else 0,
@@ -196,15 +211,19 @@ class WeeklyChartAlbum(BaseAlbum):
         Args:
             data: The raw album dict from the API.
         """
+        name = data.get("name", "")
         attr = data.get("@attr", {})
         artist_raw = data.get("artist", "")
         if isinstance(artist_raw, dict):
-            artist_raw = artist_raw.get("#text", artist_raw.get("name", ""))
+            artist_name = str(artist_raw.get("#text") or artist_raw.get("name", "") or "")
+        else:
+            artist_name = str(artist_raw)
+
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
-            artist=str(artist_raw),
+            url=_parse_album_url(data, artist_name, name),
+            artist=artist_name,
             playcount=int(data.get("playcount", 0)),
             rank=int(attr.get("rank", 0)) if attr else 0,
         )
@@ -219,16 +238,16 @@ class AlbumTrack:
         url: The Last.fm URL for this track.
         duration: The track duration in seconds.
         rank: The track's position in the album.
+        artist: The track artist as a ``BaseArtist``.
         streamable: Streamability information.
-        artist: The track artist.
     """
 
     name: str
     url: str
     duration: int
     rank: int
+    artist: BaseArtist
     streamable: Streamable | None = None
-    artist: BaseArtist | None = None
 
     @classmethod
     def from_data(cls, data: JSONDict) -> AlbumTrack:
@@ -237,19 +256,28 @@ class AlbumTrack:
         Args:
             data: The raw track dict from the API.
         """
+        name = data.get("name", "")
         attr = data.get("@attr", {})
         artist_data = data.get("artist")
+        artist_obj: BaseArtist
+        if isinstance(artist_data, dict):
+            artist_obj = BaseArtist.from_data(artist_data)
+        elif isinstance(artist_data, str):
+            artist_obj = BaseArtist.from_data({"name": artist_data})
+        else:
+            artist_obj = BaseArtist(name="", mbid="", url="")
+
+        url = data.get("url")
+        if not url and artist_obj.name and name:
+            url = f"https://www.last.fm/music/{quote_plus(artist_obj.name)}/_/{quote_plus(name)}"
+
         return cls(
-            name=data.get("name", ""),
-            url=data.get("url", ""),
+            name=name,
+            url=str(url) if url else "",
             duration=int(data.get("duration", 0)),
             rank=int(attr.get("rank", 0)) if attr else 0,
+            artist=artist_obj,
             streamable=Streamable.from_data(data.get("streamable")),
-            artist=(
-                BaseArtist.from_data(artist_data)
-                if isinstance(artist_data, dict)
-                else None
-            ),
         )
 
 
@@ -282,9 +310,12 @@ class AlbumInfo(BaseAlbum):
         Args:
             data: The ``album`` object from the API response.
         """
+        name = data.get("name", "")
         artist_raw = data.get("artist", "")
         if isinstance(artist_raw, dict):
-            artist_raw = artist_raw.get("name", "")
+            artist_name = artist_raw.get("name", "")
+        else:
+            artist_name = str(artist_raw)
 
         tracks_data = data.get("tracks", {})
         tracks_list = (
@@ -297,10 +328,10 @@ class AlbumInfo(BaseAlbum):
         upc = data.get("userplaycount")
 
         return cls(
-            name=data.get("name", ""),
+            name=name,
             mbid=data.get("mbid", ""),
-            url=data.get("url", ""),
-            artist=str(artist_raw),
+            url=_parse_album_url(data, artist_name, name),
+            artist=artist_name,
             images=Image.list_from_data(data.get("image")),
             listeners=int(data.get("listeners", 0)),
             playcount=int(data.get("playcount", 0)),

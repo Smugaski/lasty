@@ -167,6 +167,11 @@ class TestBaseArtist:
         assert a.mbid == ""
         assert a.url == ""
 
+    def test_generated_url_with_spaces(self):
+        a = BaseArtist.from_data({"name": "The Backseat Lovers"})
+        assert a.name == "The Backseat Lovers"
+        assert a.url == "https://www.last.fm/music/The+Backseat+Lovers"
+
 
 class TestArtistSummary:
     def test_from_data(self):
@@ -333,6 +338,11 @@ class TestBaseAlbum:
         a = BaseAlbum.from_data(data)
         assert a.name == "Sehnsucht"
 
+    def test_generated_url(self):
+        data = {"name": "Hybrid Theory", "artist": "Linkin Park"}
+        a = BaseAlbum.from_data(data)
+        assert a.url == "https://www.last.fm/music/Linkin+Park/Hybrid+Theory"
+
 
 class TestTrackAlbum:
     def test_from_data(self):
@@ -460,6 +470,11 @@ class TestBaseTrack:
         assert t.artist_name == "Rammstein"
         assert t.artist is None
 
+    def test_generated_url_without_album(self):
+        data = {"name": "One Step Closer", "artist": "Linkin Park"}
+        t = BaseTrack.from_data(data)
+        assert t.url == "https://www.last.fm/music/Linkin+Park/_/One+Step+Closer"
+
 
 class TestTopTrack:
     def test_from_data(self):
@@ -477,6 +492,8 @@ class TestTopTrack:
         assert t.playcount == 777
         assert t.rank == 2
         assert t.duration == 240
+        assert isinstance(t.artist, BaseArtist)
+        assert t.artist.name == "Rammstein"
 
 
 class TestLovedTrack:
@@ -492,6 +509,8 @@ class TestLovedTrack:
         t = LovedTrack.from_data(data)
         assert t.date is not None
         assert t.date.uts == 1603187000
+        assert isinstance(t.artist, BaseArtist)
+        assert t.artist.name == "Rammstein"
 
 
 class TestRecentTrack:
@@ -510,6 +529,7 @@ class TestRecentTrack:
         assert t.artist_name == "Rammstein"
         assert t.album_name == "Sehnsucht"
         assert not t.now_playing
+        assert t.artist is None
 
     def test_now_playing(self):
         data = {
@@ -525,6 +545,16 @@ class TestRecentTrack:
         t = RecentTrack.from_data(data)
         assert t.now_playing is True
         assert t.date is None
+        assert t.artist is None
+
+    def test_generated_url_with_album(self):
+        data = {
+            "name": "One Step Closer",
+            "artist": {"name": "Linkin Park"},
+            "album": {"#text": "Hybrid Theory"},
+        }
+        t = RecentTrack.from_data(data)
+        assert t.url == "https://www.last.fm/music/Linkin+Park/Hybrid+Theory/_/One+Step+Closer"
 
 
 class TestWeeklyChartTrack:
@@ -542,6 +572,7 @@ class TestWeeklyChartTrack:
         assert t.playcount == 15
         assert t.rank == 5
         assert t.artist_name == "Rammstein"
+        assert t.artist is None
 
 
 class TestSimilarTrack:
@@ -559,6 +590,8 @@ class TestSimilarTrack:
         t = SimilarTrack.from_data(data)
         assert t.match == 0.95
         assert t.duration == 380
+        assert isinstance(t.artist, BaseArtist)
+        assert t.artist.name == "Rammstein"
 
 
 class TestTrackInfo:
