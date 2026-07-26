@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 
-from lasty.api.base import BaseAPI
-from lasty.models.common import PaginatedResponse, PaginationAttr
-from lasty.models.track import (
+from .base import BaseAPI
+from ..models.common import PaginatedResponse, PaginationAttr
+from ..models.track import (
     TrackInfo,
     TrackCorrection,
     SimilarTrack,
@@ -13,7 +13,7 @@ from lasty.models.track import (
     ScrobbleResult,
     NowPlayingResult,
 )
-from lasty.models.tag import Tag, TopTag
+from ..models.tag import Tag, TopTag
 
 __all__ = ["TrackAPI"]
 

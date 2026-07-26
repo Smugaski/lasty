@@ -6,16 +6,16 @@ import typing
 from functools import cached_property
 from typing import Self
 
-from lasty.http import HTTPClient
-from lasty.api.user import UserAPI
-from lasty.api.artist import ArtistAPI
-from lasty.api.album import AlbumAPI
-from lasty.api.track import TrackAPI
-from lasty.api.tag import TagAPI
-from lasty.api.chart import ChartAPI
-from lasty.api.geo import GeoAPI
-from lasty.api.library import LibraryAPI
-from lasty.api.auth import AuthAPI
+from .http import HTTPClient
+from .api.user import UserAPI
+from .api.artist import ArtistAPI
+from .api.album import AlbumAPI
+from .api.track import TrackAPI
+from .api.tag import TagAPI
+from .api.chart import ChartAPI
+from .api.geo import GeoAPI
+from .api.library import LibraryAPI
+from .api.auth import AuthAPI
 
 __all__ = ["LastFM"]
 

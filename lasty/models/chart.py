@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from lasty._types import JSONDict
+from .._types import JSONDict
 
 __all__ = [
     "WeeklyChartAttr",

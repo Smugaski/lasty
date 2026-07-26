@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from typing import AsyncIterator
 
-from lasty.api.base import BaseAPI
-from lasty.models.common import PaginatedResponse, PaginationAttr
-from lasty.models.artist import (
+from .base import BaseAPI
+from ..models.common import PaginatedResponse, PaginationAttr
+from ..models.artist import (
     ArtistInfo,
     ArtistCorrection,
     SimilarArtist,
     TopArtist,
 )
-from lasty.models.album import TopAlbum
-from lasty.models.track import TopTrack
-from lasty.models.tag import Tag, TopTag
+from ..models.album import TopAlbum
+from ..models.track import TopTrack
+from ..models.tag import Tag, TopTag
 
 __all__ = ["ArtistAPI"]
 

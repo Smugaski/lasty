@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import AsyncIterator
 
-from lasty.api.base import BaseAPI
-from lasty.models.common import PaginatedResponse, PaginationAttr
-from lasty.models.artist import LibraryArtist
+from .base import BaseAPI
+from ..models.common import PaginatedResponse, PaginationAttr
+from ..models.artist import LibraryArtist
 
 __all__ = ["LibraryAPI"]
 

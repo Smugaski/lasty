@@ -4,21 +4,21 @@ from __future__ import annotations
 
 from typing import AsyncIterator
 
-from lasty.api.base import BaseAPI
-from lasty.enums import Period, TaggingType
-from lasty.models.common import PaginatedResponse, PaginationAttr
-from lasty.models.user import UserInfo, Friend
-from lasty.models.track import (
+from .base import BaseAPI
+from ..enums import Period, TaggingType
+from ..models.common import PaginatedResponse, PaginationAttr
+from ..models.user import UserInfo, Friend
+from ..models.track import (
     LovedTrack,
     RecentTrack,
     TopTrack,
     WeeklyChartTrack,
     BaseTrack,
 )
-from lasty.models.artist import TopArtist, WeeklyChartArtist, BaseArtist
-from lasty.models.album import TopAlbum, WeeklyChartAlbum, BaseAlbum
-from lasty.models.tag import UserTag
-from lasty.models.chart import WeeklyChart, WeeklyChartAttr, ChartDateRange
+from ..models.artist import TopArtist, WeeklyChartArtist, BaseArtist
+from ..models.album import TopAlbum, WeeklyChartAlbum, BaseAlbum
+from ..models.tag import UserTag
+from ..models.chart import WeeklyChart, WeeklyChartAttr, ChartDateRange
 
 __all__ = ["UserAPI"]
 

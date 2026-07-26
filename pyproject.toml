@@ -10,7 +10,7 @@ project-includes = [
 
 [project]
 name = "lasty"
-version = "0.1.1"
+version = "0.1.2"
 description = "A fully typed, async Python wrapper for the Last.fm API"
 readme = "README.md"
 requires-python = ">=3.10"

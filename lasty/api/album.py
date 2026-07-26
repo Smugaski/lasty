@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 
-from lasty.api.base import BaseAPI
-from lasty.models.common import PaginatedResponse, PaginationAttr
-from lasty.models.album import AlbumInfo, AlbumSearchResult
-from lasty.models.tag import Tag, TopTag
+from .base import BaseAPI
+from ..models.common import PaginatedResponse, PaginationAttr
+from ..models.album import AlbumInfo, AlbumSearchResult
+from ..models.tag import Tag, TopTag
 
 __all__ = ["AlbumAPI"]
 

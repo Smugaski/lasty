@@ -12,9 +12,9 @@ import logging
 
 import aiohttp
 
-from lasty._types import JSONDict
-from lasty.auth import generate_signature
-from lasty.errors import LastFMError, RateLimitError, TemporaryError
+from ._types import JSONDict
+from .auth import generate_signature
+from .errors import LastFMError, RateLimitError, TemporaryError
 
 __all__ = ["HTTPClient"]
 

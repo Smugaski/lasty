@@ -11,8 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from lasty.enums import ImageSize
-from lasty._types import JSONDict
+from ..enums import ImageSize
+from .._types import JSONDict
 
 __all__ = [
     "Image",

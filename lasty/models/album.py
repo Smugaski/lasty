@@ -9,10 +9,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from urllib.parse import quote_plus
 
-from lasty._types import JSONDict
-from lasty.models.common import Image, Wiki, Streamable
-from lasty.models.artist import BaseArtist
-from lasty.models.tag import Tag
+from .._types import JSONDict
+from .common import Image, Wiki, Streamable
+from .artist import BaseArtist
+from .tag import Tag
 
 __all__ = [
     "BaseAlbum",
@@ -30,7 +30,9 @@ def _parse_album_url(data: JSONDict, artist: str, album_name: str) -> str:
     if url:
         return str(url)
     if artist and album_name:
-        return f"https://www.last.fm/music/{quote_plus(artist)}/{quote_plus(album_name)}"
+        return (
+            f"https://www.last.fm/music/{quote_plus(artist)}/{quote_plus(album_name)}"
+        )
     return ""
 
 
@@ -215,7 +217,9 @@ class WeeklyChartAlbum(BaseAlbum):
         attr = data.get("@attr", {})
         artist_raw = data.get("artist", "")
         if isinstance(artist_raw, dict):
-            artist_name = str(artist_raw.get("#text") or artist_raw.get("name", "") or "")
+            artist_name = str(
+                artist_raw.get("#text") or artist_raw.get("name", "") or ""
+            )
         else:
             artist_name = str(artist_raw)
 

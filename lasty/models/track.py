@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from urllib.parse import quote_plus
 
-from lasty._types import JSONDict
-from lasty.models.common import Image, Wiki, Streamable, DateInfo
-from lasty.models.artist import BaseArtist
-from lasty.models.album import TrackAlbum
-from lasty.models.tag import Tag
+from .._types import JSONDict
+from .common import Image, Wiki, Streamable, DateInfo
+from .artist import BaseArtist
+from .album import TrackAlbum
+from .tag import Tag
 
 __all__ = [
     "BaseTrack",
@@ -426,7 +426,9 @@ class TrackInfo(BaseTrack):
             listeners=int(data.get("listeners", 0)),
             playcount=int(data.get("playcount", 0)),
             streamable=Streamable.from_data(data.get("streamable")),
-            album=TrackAlbum.from_data(album_data if isinstance(album_data, dict) else None),
+            album=TrackAlbum.from_data(
+                album_data if isinstance(album_data, dict) else None
+            ),
             toptags=[Tag.from_data(t) for t in toptags_list],
             wiki=Wiki.from_data(data.get("wiki")),
             userplaycount=int(upc) if upc is not None else None,

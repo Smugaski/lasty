@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import AsyncIterator
 
-from lasty.api.base import BaseAPI
-from lasty.models.common import PaginatedResponse, PaginationAttr
-from lasty.models.artist import ArtistSummary
-from lasty.models.tag import TopTag
-from lasty.models.track import TopTrack
+from .base import BaseAPI
+from ..models.common import PaginatedResponse, PaginationAttr
+from ..models.artist import ArtistSummary
+from ..models.tag import TopTag
+from ..models.track import TopTrack
 
 __all__ = ["ChartAPI"]
 

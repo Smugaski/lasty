@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from lasty._types import JSONDict
+from .._types import JSONDict
 
 if TYPE_CHECKING:
-    from lasty.http import HTTPClient
+    from ..http import HTTPClient
 
 __all__ = ["BaseAPI"]
 

@@ -5,9 +5,9 @@ frozen dataclasses, PEP 561 compliance, and full namespace support
 mirroring the Last.fm API methods.
 """
 
-from lasty.client import LastFM
-from lasty.enums import ImageSize, Period, TaggingType
-from lasty.errors import (
+from .client import LastFM
+from .enums import ImageSize, Period, TaggingType
+from .errors import (
     AuthenticationFailedError,
     InvalidAPIKeyError,
     InvalidFormatError,

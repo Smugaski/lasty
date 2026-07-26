@@ -4,7 +4,7 @@ All models are frozen dataclasses with ``from_data`` class methods that
 parse the API's JSON responses into typed Python objects.
 """
 
-from lasty.models.common import (
+from .common import (
     DateInfo,
     Image,
     PaginatedResponse,
@@ -12,7 +12,7 @@ from lasty.models.common import (
     Streamable,
     Wiki,
 )
-from lasty.models.artist import (
+from .artist import (
     ArtistBio,
     ArtistCorrection,
     ArtistInfo,
@@ -24,7 +24,7 @@ from lasty.models.artist import (
     TopArtist,
     WeeklyChartArtist,
 )
-from lasty.models.album import (
+from .album import (
     AlbumInfo,
     AlbumSearchResult,
     AlbumTrack,
@@ -33,7 +33,7 @@ from lasty.models.album import (
     TrackAlbum,
     WeeklyChartAlbum,
 )
-from lasty.models.track import (
+from .track import (
     BaseTrack,
     LovedTrack,
     NowPlayingResult,
@@ -45,18 +45,18 @@ from lasty.models.track import (
     TrackInfo,
     WeeklyChartTrack,
 )
-from lasty.models.user import (
+from .user import (
     BaseUser,
     Friend,
     UserInfo,
 )
-from lasty.models.tag import (
+from .tag import (
     Tag,
     TagInfo,
     TopTag,
     UserTag,
 )
-from lasty.models.chart import (
+from .chart import (
     ChartDateRange,
     WeeklyChart,
     WeeklyChartAttr,

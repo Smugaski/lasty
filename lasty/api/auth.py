@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from lasty._types import JSONDict
-from lasty.api.base import BaseAPI
+from .._types import JSONDict
+from .base import BaseAPI
 
 __all__ = ["Session", "AuthAPI"]
 

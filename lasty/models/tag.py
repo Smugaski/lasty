@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from lasty._types import JSONDict
-from lasty.models.common import Wiki
+from .._types import JSONDict
+from ..models.common import Wiki
 
 __all__ = [
     "Tag",

@@ -10,9 +10,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from urllib.parse import quote_plus
 
-from lasty._types import JSONDict
-from lasty.models.common import Image
-from lasty.models.tag import Tag
+from .._types import JSONDict
+from .common import Image
+from .tag import Tag
 
 __all__ = [
     "BaseArtist",
@@ -378,4 +378,3 @@ class ArtistCorrection:
         correction = corrections.get("correction", {})
         artist_data = correction.get("artist", {})
         return cls(artist=BaseArtist.from_data(artist_data))
-

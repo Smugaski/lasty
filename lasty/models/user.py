@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from lasty._types import JSONDict
-from lasty.models.common import Image, DateInfo
+from .._types import JSONDict
+from .common import Image, DateInfo
 
 __all__ = [
     "BaseUser",
